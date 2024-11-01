@@ -1,0 +1,27 @@
+<!-- Modal for adding/editing attributes -->
+<div class="modal fade" id="attributeModal" tabindex="-1" role="dialog" aria-labelledby="attributeModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="attributeModalLabel">Add Attribute</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="attribute-name">Attribute</label>
+          <%= select_tag 'attribute-name', options_from_collection_for_select(@attributes, :id, :attribute_name), class: "form-control"  %>
+        </div>
+        <div class="form-group">
+          <label for="attribute-value">Attribute Value</label>
+          <input type="text" id="attribute-value" class="form-control" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveAttribute">Save Attribute</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,136 @@
+<%= form_with(model: @product, url: admins_products_path) do |form| %>
+  <div class="field">
+    <%= form.label :category %>
+    <%= form.collection_select :category_id, @categories, :id, :category_name %>
+  </div>
+  <div>
+    <%= form.label :product_name %>
+    <%= form.text_field :product_name %>
+  </div>
+  <div>
+    <%= form.label :description %>
+    <%= form.text_area :description %>
+  </div>
+  <div>
+    <%= form.label :status %>
+    <%= form.select :status, Product.statuses.keys.map { |status| [status.humanize, status] } %>
+  </div>
+  <h3>Attributes</h3>
+  <table id="variant-attributes" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Attribute Name</th>
+        <th>Attribute Value</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- render variant attributes -->
+    </tbody>
+  </table>
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#attributeModal">Add Attribute</button>
+  <!-- Hidden fields for variants -->
+  <%= form.hidden_field :variant_attributes, id: 'variant-attributes-input', value: '[]' %>
+  <div>
+    <%= form.submit 'Create Product' %>
+  </div>
+<% end %>
+<!-- Modal for adding/editing attributes -->
+<%= render 'products/attribute_modal' %>
+<script>
+  $(document).ready(function() {
+  let currentAttributeRow = null;
+  let isEditingAttribute = false; // Track if we're editing an attribute
+  let attributes = <%= @attributes.to_json.html_safe %>;
+
+  // Save Attribute
+  $('#saveAttribute').on('click', function() {
+    const attributeId = $('#attribute-name').val();
+    const attribute = attributes.find(attr => attr.id == attributeId);
+    const attributeName = attribute.attribute_name || attributeId;
+    const attributeValue = $('#attribute-value').val();
+
+    const attributeHTML = `
+      <tr class="attribute-item">
+        <td><strong id="attr-${attributeId}">${attributeName}</strong></td>
+        <td>${attributeValue}</td>
+        <td>
+          <a href="#" class="edit-attribute">Edit</a>
+          <a href="#" class="remove-attribute">Remove</a>
+        </td>
+      </tr>
+    `;
+
+    if (!isEditingAttribute) {
+      $('#variant-attributes tbody').append(attributeHTML);
+    } else {
+      currentAttributeRow.replaceWith(attributeHTML);
+    }
+
+    $('#attributeModal').modal('hide');
+    updateVariants();
+    clearAttributeFields();
+  });
+
+  // Edit Attribute
+  $('#variant-attributes').on('click', '.edit-attribute', function(e) {
+    e.preventDefault();
+    currentAttributeRow = $(this).closest('tr');
+    const attrId = currentAttributeRow.find('strong').attr('id');
+    const name = attrId.replace('attr-', '').trim();
+    const value = currentAttributeRow.find('td').eq(1).text().trim();
+
+    $('#attribute-name').val(name);
+    $('#attribute-value').val(value);
+    isEditingAttribute = true;
+    $('#attributeModalLabel').text('Edit Attribute');
+    $('#attributeModal').modal('show');
+  });
+
+  // Remove Attribute
+  $('#variant-attributes').on('click', '.remove-attribute', function(e) {
+    e.preventDefault();
+    $(this).closest('tr').remove();
+    updateVariants();
+  });
+
+  // Clear attribute modal fields
+  function clearAttributeFields() {
+    $('#attribute-name').val(attributes.length > 0 ? attributes[0].id : '');
+    $('#attribute-value').val('');
+    isEditingAttribute = false; // Reset editing state
+    $('#attributeModalLabel').text('Add Attribute');
+  }
+
+  // Update variants array and set value to hidden input
+  function updateVariants() {
+    const variantAttributes = [];
+    $('#variant-attributes tbody tr').each(function() {
+      const attrId = $(this).find('strong').attr('id').replace('attr-', '').trim();
+      const attrValue = $(this).find('td').eq(1).text().trim();
+      variantAttributes.push({ attribute_id: attrId, value: attrValue });
+    });
+    $('#variant-attributes-input').val(JSON.stringify(variantAttributes));
+  }
+  });
+</script>
+<style>
+  .modal {
+    display: none;
+  }
+  .table {
+  margin-top: 20px;
+  }
+
+  .attribute-item {
+  margin-bottom: 5px;
+  }
+
+  .modal-header {
+  background-color: #f7f7f7;
+  }
+
+  .modal-footer {
+  justify-content: space-between;
+  }
+</style>
